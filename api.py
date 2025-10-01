@@ -1,24 +1,29 @@
-from flask import Flask, jsonify, request
+from flask import Flask, abort, jsonify, request
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
+
+residents = [
+    {"id": 1, "prenom": "John", "age": 30, "date_arrivee": "2020-01-15"},
+    {"id": 2, "prenom": "Jane ", "age": 25, "date_arrivee": "2021-06-10"},
+    {"id": 3, "prenom": "Alice", "age": 28, "date_arrivee": "2019-11-20"}
+]
 
 @app.route('/', methods=['GET'])
 def home():
     return "<h1>Bienvenue au nouveau arrivant ! </h1>"
 
 @app.route('/api/v1/residents', methods=['GET'])
-def residents():
-    residents = [
-        {"id": 1, "prenom": "John", "age": 30, "date_arrivee": "2020-01-15"},
-        {"id": 2, "prenom": "Jane ", "age": 25, "date_arrivee": "2021-06-10"},
-        {"id": 3, "prenom": "Alice", "age": 28, "date_arrivee": "2019-11-20"}
-    ]
+def get_residents():
     return jsonify(residents)
 
-@app.route('/residents/<id>', methods=['GET'])
-def get_resident(id: str):
-    pass
+@app.route('/api/v1/residents/<int:resident_id>', methods=['GET'])
+def get_resident(resident_id):
+    resident = next((r for r in residents if r["id"] == resident_id), None)
+    if resident is None:
+        abort(404, description=f"Résident avec id {resident_id} non trouvé")
+    return jsonify(resident)
+
 
 @app.route('/residents', methods=['POST'])
 def add_resident():
